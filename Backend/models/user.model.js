@@ -37,6 +37,9 @@ const UserScehma= new mongoose.Schema({
         type:Number,
         default:0,
     },
+    refreshToken:{
+        type:String,
+    }
 },
 {
     timestamps:true,
@@ -53,8 +56,33 @@ UserScehma.methods.isPasswordCorrect=async function(password){
     return await bcrypt.compare(password,this.password);
 }
 
+UserScehma.methods.generateAccessToken=function(){
+    return jwt.sign(
+        {
+            _id:this._id,
+            email:this.email,
+            name:this.name,
+        },
+        process.env.ACCESS.TOKEN_SECRET,
+        {
+            expiresIn:process.env.ACCESS_TOKEN_EXPIRY
+        }
+    )
+}
+
+UserScehma.methods.generateRefreshToken=function(){
+    return jwt.sign(
+        {
+        _id:this.id,
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+        expiresIn:process.env.REFRESH_TOKEN_EXPIRY
+    }
+)
+}
+
 
 const UserModel=mongoose.models.user || mongoose.model("User",UserScehma);
-
 export default UserModel;
 
