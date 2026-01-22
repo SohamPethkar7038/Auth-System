@@ -60,10 +60,8 @@ UserScehma.methods.generateAccessToken=function(){
     return jwt.sign(
         {
             _id:this._id,
-            email:this.email,
-            name:this.name,
         },
-        process.env.ACCESS.TOKEN_SECRET,
+        process.env.ACCESS_TOKEN_SECRET,
         {
             expiresIn:process.env.ACCESS_TOKEN_EXPIRY
         }
@@ -73,7 +71,7 @@ UserScehma.methods.generateAccessToken=function(){
 UserScehma.methods.generateRefreshToken=function(){
     return jwt.sign(
         {
-        _id:this.id,
+        _id:this._id,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
