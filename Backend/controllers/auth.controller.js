@@ -1,7 +1,7 @@
 import {asyncHandler} from "../utility/asyncHandler.js"
 import {ApiError} from "../utility/ApiError.js"
 import {ApiResponse} from "../utility/ApiResponse.js"
-import {UserModel} from "../models/user.model.js"
+import UserModel from "../models/user.model.js"
 
 
 
@@ -35,6 +35,7 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 
+
 const loginUser=asyncHandler(async(req,res)=>{
     const {email,password}=req.body;
 
@@ -45,13 +46,13 @@ const loginUser=asyncHandler(async(req,res)=>{
     const user=await UserModel.findOne({email:email.toLowerCase()});
 
     if(!user){
-        throw new ApiError(404,"Invalid user");
+        throw new ApiError(404,"Invalid user emailid");
     }
 
     const isPasswordValid=await user.isPasswordCorrect(password);
 
     if(!isPasswordValid){
-        throw new ApiError(404,"Invalid user credentials");
+        throw new ApiError(404,"Invalid user password");
     }
 
     // generating access token and refresh token
@@ -93,6 +94,8 @@ const loginUser=asyncHandler(async(req,res)=>{
         )
     }
 );
+
+
 
 const logoutUser=asyncHandler(async(req,res)=>{
     

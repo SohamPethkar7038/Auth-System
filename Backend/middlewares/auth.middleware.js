@@ -1,9 +1,9 @@
 import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
-import {UserModel} from "../models/user.model.js"
-
+import UserModel from "../models/user.model.js"
+import { asyncHandler } from "../utility/asyncHandler.js";
 import jwt from "jsonwebtoken"
-import { asyncHandler } from "../utility/asyncHandler";
+
 
 
 const verifyJWT=asyncHandler(async(req,res,next)=>{
@@ -31,7 +31,7 @@ const verifyJWT=asyncHandler(async(req,res,next)=>{
     }
 })
 
-export {verifyJWT}
+export default verifyJWT
 
 
 
