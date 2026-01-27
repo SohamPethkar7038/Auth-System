@@ -2,6 +2,7 @@ import {asyncHandler} from "../utility/asyncHandler.js"
 import {ApiError} from "../utility/ApiError.js"
 import {ApiResponse} from "../utility/ApiResponse.js"
 import UserModel from "../models/user.model.js"
+import transporter from "../config/nodeMailer.config.js"
 
 
 
@@ -29,6 +30,17 @@ const registerUser = asyncHandler(async (req, res) => {
     const createdEntry = await UserModel.findById(user._id)
         .select("-password -refreshToken")
 
+        // ****sending welcome email when first registered of user//
+
+    const sendingEmailOptions={
+        from:process.env.SENDER_EMAIL,
+        to:email,
+        subject:"Welcome to Our website",
+        text:`Welcome to our website. Your account has been created with email id :${email}`
+    }
+
+    await transporter.sendMail(sendingEmailOptions);
+    
     res
         .status(201)
         .json(new ApiResponse(201, createdEntry, "User registered successfully"))
