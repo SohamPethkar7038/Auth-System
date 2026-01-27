@@ -20,10 +20,14 @@ const UserScehma= new mongoose.Schema({
     verifyOtp:{
         type:String,
         default:'',
+        required:true,
+        select:false,
     },
     verifyOtpExpireAt:{
-        type:Number,
+        type:Date,
         default:0,
+        required:true,
+        select:false,
     },
     isAccountVerified:{
         type:Boolean,

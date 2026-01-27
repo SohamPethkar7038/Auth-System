@@ -3,6 +3,7 @@ import {ApiError} from "../utility/ApiError.js"
 import {ApiResponse} from "../utility/ApiResponse.js"
 import UserModel from "../models/user.model.js"
 import transporter from "../config/nodeMailer.config.js"
+import bcrypt from "bcryptjs"
 
 
 
@@ -39,14 +40,18 @@ const registerUser = asyncHandler(async (req, res) => {
         text:`Welcome to our website. Your account has been created with email id :${email}`
     }
 
-    await transporter.sendMail(sendingEmailOptions);
+    try {
+        await transporter.sendMail(sendingEmailOptions);
+    } catch (error) {
+        console.err("Email failed",error.message);
+    }
     
     res
         .status(201)
         .json(new ApiResponse(201, createdEntry, "User registered successfully"))
 })
 
-
+// **********************************login user***************************
 
 const loginUser=asyncHandler(async(req,res)=>{
     const {email,password}=req.body;
@@ -107,7 +112,7 @@ const loginUser=asyncHandler(async(req,res)=>{
     }
 );
 
-
+//  *************************logout*******************************************
 
 const logoutUser=asyncHandler(async(req,res)=>{
     
@@ -122,7 +127,7 @@ const logoutUser=asyncHandler(async(req,res)=>{
     const options={
         httpOnly:true,
         secure:process.env.NODE_ENV==="production",
-        sameSite:"Strict",
+        sameSite:"strict",
     }
 
     // clear auth cookies
@@ -140,7 +145,117 @@ const logoutUser=asyncHandler(async(req,res)=>{
         )
 })
 
-export {registerUser,loginUser,logoutUser};
+
+// **************************sending otp ****************************************
+
+const sendVerifyOTP= asyncHandler(async(req,res)=>{
+    const userId=req.user?._id;
+
+    if(!userId){
+        throw new ApiError(401,"unauthorized reques");
+    }
+
+    const user=await UserModel.findById(userId).select("+verifyOtp +verifyOtpExpireAt");
+
+    if(!user){
+        throw new ApiError(404,"User not found");
+    }
+
+    if(user.isAccountVerified){
+        throw new ApiError(400,"Account already verified");
+    }
+
+    const otp=Math.floor(100000 + Math.random() * 900000).toString();
+
+    const hashedOtp=await bcrypt.hash(otp,10);
+
+    user.verifyOtp=hashedOtp;
+    user.verifyOtpExpireAt=new Date(Date.now() + 10 * 60 * 1000);
+
+    await user.save({validateBeforeSave:false});
+
+
+
+    const sendingEmailOptions={
+        from:process.env.SENDER_EMAIL,
+        to:user.email,
+        subject:"Account verification OTP",
+        text:`Your otp is ${otp}. Verify your account using this otp. It expires in 10 minutes`
+    };
+
+    try {
+        await transporter.sendMail(sendingEmailOptions);
+    } catch (error) {
+        console.err("Email failed",error.message);
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200,
+                {},
+                "Verification otp send to email"
+            )
+        );
+
+});
+
+
+// **************************verifying otp ****************************************
+
+const verifyEmailOtp=asyncHandler(async(req,res)=>{
+
+    const userId=req.user?._id;
+    const {otp} =req.body;
+
+    if(!otp){
+        throw new ApiError(400,"otp is required");
+    }
+
+    const user=await UserModel.findById(userId).select("+verifyOtp +verifyOtpExpireAt");
+
+    if(!user){
+        throw new ApiError(404,"User not found");
+    }
+
+    if(user.isAccountVerified){
+        throw new ApiError(400,"Account already verified");
+    }
+
+    if(!user.verifyOtp || !user.verifyOtpExpireAt){
+        throw new ApiError(400,"No otp request found");
+    }
+
+    if(user.verifyOtpExpireAt < Date.now()){
+        throw new ApiError(400,"OTP has expired")
+    }
+
+
+    const isOtpValid=await bcrypt.compare(otp,user.verifyOtp);
+
+    if(!isOtpValid){
+        throw new ApiError(400,"Invalid Otp");
+    }
+
+    user.isAccountVerified=true;
+    user.verifyOtp=undefined;
+    user.verifyOtpExpireAt=undefined;
+
+    await user.save({validateBeforeSave:false});
+
+    return res.
+    status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {},
+            "Email verified successfully")
+    );
+
+    })
+
+
+export {registerUser,loginUser,logoutUser,sendVerifyOTP,verifyEmailOtp};
 
 
 
