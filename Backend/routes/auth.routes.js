@@ -5,6 +5,7 @@ import { logoutUser } from "../controllers/auth.controller.js";
 import verifyJWT  from "../middlewares/auth.middleware.js";
 import { sendVerifyOTP } from "../controllers/auth.controller.js";
 import { verifyEmailOtp } from "../controllers/auth.controller.js";
+import { userIfAuthenticate } from "../controllers/auth.controller.js";
 
 
 
@@ -20,5 +21,6 @@ router.route('/logout').post(verifyJWT,logoutUser);
 
 router.route("/send-verification-otp").post(verifyJWT,sendVerifyOTP);
 router.route("/verify-email").post(verifyJWT,verifyEmailOtp);
+router.route("/isauth").post(verifyJWT,userIfAuthenticate);
 
 export default router;

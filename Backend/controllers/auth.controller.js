@@ -254,8 +254,19 @@ const verifyEmailOtp=asyncHandler(async(req,res)=>{
 
     })
 
+// ********* to check if isAunticate******************
 
-export {registerUser,loginUser,logoutUser,sendVerifyOTP,verifyEmailOtp};
+const userIfAuthenticate=async(req,res)=>{
+    try {
+        return res
+            .json(200,"User is verified")
+    } catch (error) {
+        return res
+            .json(400,"Account is not register")
+    }
+}
+
+export {registerUser,loginUser,logoutUser,sendVerifyOTP,verifyEmailOtp,userIfAuthenticate};
 
 
 
