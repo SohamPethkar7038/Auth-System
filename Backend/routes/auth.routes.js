@@ -29,4 +29,6 @@ router.route("/isauth").post(verifyJWT,userIfAuthenticate);
 router.route("/send-reset-otp").post(sendPasswordResetOtp);
 router.route("/reset-password").post(resetPasswordVerify);
 
+
+
 export default router;

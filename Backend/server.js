@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 
 import connectDB from './config/database.js';
 import router from './routes/auth.routes.js';
+import userRouter from './routes/userDetails.route.js';
 
 dotenv.config();
 const app=express();
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/v1/auth',router)
+app.use('/api/v1/user',userRouter)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
