@@ -1,13 +1,23 @@
-
+import { Routes,Route } from 'react-router-dom'
 import './App.css'
+import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
+import ResetPassword from './pages/ResetPassword.jsx'
+import VerifyEmail from './pages/VerifyEmail'
 
 function App() {
   
 
   return (
-    <>
-    <h1 className='bg-amber-700'>Starting frontend</h1>
-    </>
+    <div>
+      <Routes>
+        <Route path='/' element={<Home/>}/>
+        <Route path='/login' element={<Login/>}/>
+        <Route path='/reset-password' element={<ResetPassword/>}/>
+        <Route path='/verify-email' element={<VerifyEmail/>}/>
+
+      </Routes>
+    </div>
   )
 }
 
