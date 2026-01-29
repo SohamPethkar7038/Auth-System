@@ -38,8 +38,11 @@ const UserScehma= new mongoose.Schema({
         default:'',
     },
     resetOtpExpireAt:{
-        type:Number,
+        type:Date,
         default:0,
+    },
+    passwordResetRequestedAt: {
+    type: Number,
     },
     refreshToken:{
         type:String,

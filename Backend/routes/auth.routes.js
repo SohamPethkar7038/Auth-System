@@ -6,7 +6,8 @@ import verifyJWT  from "../middlewares/auth.middleware.js";
 import { sendVerifyOTP } from "../controllers/auth.controller.js";
 import { verifyEmailOtp } from "../controllers/auth.controller.js";
 import { userIfAuthenticate } from "../controllers/auth.controller.js";
-
+import {sendPasswordResetOtp} from "../controllers/auth.controller.js"
+import { resetPasswordVerify } from "../controllers/auth.controller.js";
 
 
 const router=Router();
@@ -17,10 +18,15 @@ router.route('/login').post(loginUser);
 
 router.route('/logout').post(verifyJWT,logoutUser);
 
+
 // *** email verification***
 
 router.route("/send-verification-otp").post(verifyJWT,sendVerifyOTP);
 router.route("/verify-email").post(verifyJWT,verifyEmailOtp);
 router.route("/isauth").post(verifyJWT,userIfAuthenticate);
+
+// *** reset password otp verification ******
+router.route("/send-reset-otp").post(sendPasswordResetOtp);
+router.route("/reset-password").post(resetPasswordVerify);
 
 export default router;

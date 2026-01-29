@@ -254,7 +254,7 @@ const verifyEmailOtp=asyncHandler(async(req,res)=>{
 
     })
 
-// ********* to check if isAunticate******************
+// ********* to check if isAuthenticate******************
 
 const userIfAuthenticate=async(req,res)=>{
     try {
@@ -266,7 +266,113 @@ const userIfAuthenticate=async(req,res)=>{
     }
 }
 
-export {registerUser,loginUser,logoutUser,sendVerifyOTP,verifyEmailOtp,userIfAuthenticate};
+
+// ***************** send password otp ************************
+
+const sendPasswordResetOtp = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        throw new ApiError(400, "Email is required");
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await UserModel.findOne({ email: normalizedEmail });
+
+    // Always return same response to prevent email enumeration
+    if (!user) {
+        return res.json(
+            new ApiResponse(200, {}, "If the email exists, OTP sent")
+        );
+    }
+
+    const COOLDOWN_TIME = 60 * 1000; // 1 minute cooldown
+
+    if (
+        user.passwordResetRequestedAt &&
+        Date.now() - user.passwordResetRequestedAt < COOLDOWN_TIME
+    ) {
+        throw new ApiError(429, "Please wait before requesting another OTP");
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
+    user.resetOtp = hashedOtp;
+    user.resetOtpExpireAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min expiry
+    user.passwordResetRequestedAt = Date.now(); // ✅ FIXED (store request time)
+
+    await user.save({ validateBeforeSave: false });
+
+    const sendingEmailOptions = {
+        from: process.env.SENDER_EMAIL,
+        to: normalizedEmail,
+        subject: "Password reset OTP",
+        text: `Your password reset OTP is ${otp}. It expires in 10 minutes.`,
+    };
+
+    try {
+        await transporter.sendMail(sendingEmailOptions);
+    } catch (error) {
+        // Cleanup if email fails
+        user.resetOtp = undefined;
+        user.resetOtpExpireAt = undefined;
+        user.passwordResetRequestedAt = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        throw new ApiError(500, "Failed to send reset OTP email");
+    }
+
+    return res.json(
+        new ApiResponse(200, {}, "If the email exists, OTP sent")
+    );
+});
+
+const resetPasswordVerify = asyncHandler(async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+        throw new ApiError(400, "Email, OTP, and new password are required");
+    }
+
+    const normalizedEmail = email.toLowerCase();
+    const user = await UserModel.findOne({ email: normalizedEmail });
+
+    if (!user || !user.resetOtp || !user.resetOtpExpireAt) {
+        return res.status(400).json(
+            new ApiResponse(400, {}, "Invalid or expired OTP")
+        );
+    }
+
+    if (user.resetOtpExpireAt < Date.now()) {
+        throw new ApiError(400, "OTP has expired");
+    }
+
+    const isOtpValid = await bcrypt.compare(otp, user.resetOtp);
+
+    if (!isOtpValid) {
+        throw new ApiError(400, "Invalid OTP");
+    }
+
+    // Update password
+    user.password = newPassword;
+
+    // Security cleanup
+    user.resetOtp = undefined;
+    user.resetOtpExpireAt = undefined;
+    user.passwordResetRequestedAt = undefined;
+    user.refreshToken = undefined; // force logout everywhere
+
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Password changed successfully")
+    );
+});
+
+
+export {registerUser,loginUser,logoutUser,sendVerifyOTP,verifyEmailOtp,userIfAuthenticate,sendPasswordResetOtp,resetPasswordVerify};
 
 
 
