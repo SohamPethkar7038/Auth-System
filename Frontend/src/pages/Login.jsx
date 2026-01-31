@@ -7,18 +7,20 @@ import { toast } from 'react-toastify';
 
 
 
+
 const Login = () => {
 
     const [state,setState]=useState('Sign Up');
 
     const navigate=useNavigate();
 
-    const {backendUrl,setIsLogIn}=useContext(AppContext);
+    const {backendUrl,setIsLogIn,getUserData}=useContext(AppContext);
 
     const [name,setName]=useState('');
     const[email,setEmail]=useState('');
     const[password,setPassword]=useState('');
 
+    
     const onSubmitHandler=async(e)=>{
       try{
         e.preventDefault();
@@ -30,6 +32,7 @@ const Login = () => {
 
           if(data.success){
             setIsLogIn(true);
+            getUserData();
             navigate('/')
           }
           else{
@@ -41,6 +44,7 @@ const Login = () => {
 
           if(data.success){
             setIsLogIn(true);
+            getUserData();
             navigate('/');
           }
           else{
@@ -48,7 +52,7 @@ const Login = () => {
           }
         }
       }catch(err){
-        toast.error(data.message);
+        toast.error(error.response?.data?.message || error.message);
       }
     }
 

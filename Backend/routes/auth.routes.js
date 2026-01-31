@@ -23,7 +23,7 @@ router.route('/logout').post(verifyJWT,logoutUser);
 
 router.route("/send-verification-otp").post(verifyJWT,sendVerifyOTP);
 router.route("/verify-email").post(verifyJWT,verifyEmailOtp);
-router.route("/isauth").post(verifyJWT,userIfAuthenticate);
+router.route("/isauth").get(verifyJWT,userIfAuthenticate);
 
 // *** reset password otp verification ******
 router.route("/send-reset-otp").post(sendPasswordResetOtp);
