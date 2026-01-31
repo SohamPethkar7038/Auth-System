@@ -1,15 +1,56 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import {assets} from "../assets/assets.js"
 import {useNavigate} from 'react-router-dom'
+import { AppContext } from '../context/AppContext.jsx';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+
+
+
 const Login = () => {
 
     const [state,setState]=useState('Sign Up');
 
     const navigate=useNavigate();
 
+    const {backendUrl,setIsLogIn}=useContext(AppContext);
+
     const [name,setName]=useState('');
     const[email,setEmail]=useState('');
     const[password,setPassword]=useState('');
+
+    const onSubmitHandler=async(e)=>{
+      try{
+        e.preventDefault();
+
+        axios.defaults.withCredentials=true;
+
+        if(state==='Sign Up'){
+          const {data} = await axios.post(backendUrl + '/api/v1/auth/register',{name,email,password});
+
+          if(data.success){
+            setIsLogIn(true);
+            navigate('/')
+          }
+          else{
+          toast.error(data.message);
+        }
+        }
+        else{
+          const {data}=await axios.post(backendUrl+'/api/v1/auth/login',{email,password});
+
+          if(data.success){
+            setIsLogIn(true);
+            navigate('/');
+          }
+          else{
+            toast.error(data.message);
+          }
+        }
+      }catch(err){
+        toast.error(data.message);
+      }
+    }
 
   return (
     <div className ='flex items-center justify-center min-h-screen px-6 sm:px-0   bg-linear-to-br from-blue-200 to-purple-400 '>
@@ -21,7 +62,7 @@ const Login = () => {
 
             <p className='text-center text-sm mb-6'>{state==='Sign Up' ? 'Create your account' : 'Login to your account'}</p>
 
-            <form>
+            <form onSubmit={onSubmitHandler}>
 
               {state==='Sign Up' && (
                 <div className='text-white flex mt-4 items-center gap-3 w-full px-5 py-2.5 rounded-full bg-[#333A5C]'>
