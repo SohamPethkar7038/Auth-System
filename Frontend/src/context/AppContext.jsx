@@ -27,20 +27,21 @@ export const AppContextProvider=(props)=>{
         }
     }
 
-    const getAuthState=async()=>{
-       try {
-         const {data}=await axios.get(backendUrl + '/api/v1/auth/isauth')
-
-         if(data.success){
-            setIsLogIn(true);
-            getUserData();
-         }
-        
-       } catch (error) {
-        toast.error(error.message)
-       }
+    const getAuthState = async () => {
+  try {
+    const { data } = await axios.get(`${backendUrl}/api/v1/auth/isauth`);
+    if (data.success) {
+      setIsLogIn(true);
+      setUserData(data.data.user); // now this will work
+    } else {
+      setIsLogIn(false);
+      setUserData(false);
     }
-
+  } catch (error) {
+    setIsLogIn(false);
+    setUserData(false);
+  }
+};
 
     useEffect(()=>{
         getAuthState();

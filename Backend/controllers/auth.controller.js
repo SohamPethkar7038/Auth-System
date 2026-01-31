@@ -256,15 +256,16 @@ const verifyEmailOtp=asyncHandler(async(req,res)=>{
 
 // ********* to check if isAuthenticate******************
 
-const userIfAuthenticate=async(req,res)=>{
-    try {
-        return res
-            .json(200,"User is verified")
-    } catch (error) {
-        return res
-            .json(400,"Account is not register")
+const userIfAuthenticate = asyncHandler(async (req, res) => {
+    // req.user is set by verifyJWT
+    if (!req.user) {
+        return res.status(401).json(new ApiResponse(401, {}, "Unauthorized"));
     }
-}
+
+    return res.status(200).json(
+        new ApiResponse(200, { user: req.user }, "User is authenticated")
+    );
+});
 
 
 // ***************** send password otp ************************
